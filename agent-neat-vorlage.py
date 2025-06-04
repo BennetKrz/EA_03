@@ -283,6 +283,6 @@ winner = p.run(eval_genomes, 100) # up to X generations
 net = neat.nn.FeedForwardNetwork.create(winner, config)
 agent = Agent(net)
 agent.set_map(config.map)
-agent.set_goal(0,0)
-agent.set_start(MAP_SIZE-1, MAP_SIZE-1)
+agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
+agent.set_start(0,0)
 generator.draw_map(agent)
