@@ -1,3 +1,4 @@
+import operator
 import random
 from tkinter import Tk, Canvas
 import neat
@@ -6,7 +7,7 @@ import visualize
 
 # Kantenlänge des Labyrinths
 MAP_SIZE = 25
-
+MAX_STEPS = 100
 
 class MapGenerator:
     """
@@ -149,8 +150,20 @@ class Agent:
         
         def valid_move(x, y):
             return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (x,y) not in self.visited and self.map[x][y] == 0
-        
-        # TODO
+
+        if direction == 0:
+            delta = (-1, 0)
+        elif direction == 1:
+            delta = (0, -1)
+        elif direction == 2:
+            delta = (1, 0)
+        else:
+            delta = (0, 1)
+
+        if valid_move(self.pos_x+delta[0], self.pos_y+delta[1]):
+            self.pos_x += delta[0]
+            self.pos_y += delta[1]
+            return True
 
         return False
 
@@ -182,11 +195,42 @@ class Agent:
             Führt eine Maximalanzahl von Schritten für den Agenten aus.
             Die Richtung wird vom "Gehirn", dem neuronalen Netz festgelegt.
         """
-        
-        # TODO
 
-        return 
+        steps = 0
+        while steps < MAX_STEPS and (self.pos_x != self.goal_x and self.pos_y != self.goal_y):
 
+            neighbours = self.get_neighbours()
+            output = self.net.activate(neighbours)
+            next_dirs = [(index, probability) for index, probability in enumerate(output)]
+            next_dirs = sorted(next_dirs, key=operator.itemgetter(1), reverse=True)
+
+            for next_dir in next_dirs:
+                if self.move(next_dir[0]):
+                    break
+
+            steps += 1
+
+        self.fitness = self.fitness_function()
+        #self.fitness = self.fitness_min_steps(steps)
+        return
+
+    def fitness_function(self):
+        return -(abs(self.pos_x - self.goal_x) + abs(self.pos_y - self.goal_y))
+
+    def fitness_min_steps(self, steps):
+        return self.fitness_function() - steps
+
+    def get_neighbours(self):
+        neighbours = []
+
+        deltas = [(0, 1), (0, -1), (1, 0), (-1, 0), (-1, 1), (1, -1), (1, 1), (-1, -1)]
+        for delta in deltas:
+            try:
+                neighbours.append(0 if self.map[self.pos_x + delta[0]][self.pos_y + delta[1]] == 0 or 'E' or 'S' else 1)
+            except IndexError:
+                neighbours.append(1)
+
+        return neighbours
 
 # Creates agents with the given net and tests it on the given map
 def eval_genomes(genomes, config):
