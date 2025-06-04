@@ -163,6 +163,7 @@ class Agent:
         if valid_move(self.pos_x+delta[0], self.pos_y+delta[1]):
             self.pos_x += delta[0]
             self.pos_y += delta[1]
+            self.visited.add((self.pos_x, self.pos_y))
             return True
 
         return False
