@@ -211,8 +211,8 @@ class Agent:
 
             steps += 1
 
-        self.fitness = self._get_distance()
-        #self.fitness = self.fitness_function()
+        #self.fitness = self._get_distance()
+        self.fitness = self.fitness_function()
         #self.fitness = self.fitness_min_steps(steps)
         return
 
@@ -221,18 +221,6 @@ class Agent:
 
     def fitness_min_steps(self, steps):
         return self.fitness_function() - steps
-
-    def get_neighbours(self):
-        neighbours = []
-
-        deltas = [(0, 1), (0, -1), (1, 0), (-1, 0), (-1, 1), (1, -1), (1, 1), (-1, -1)]
-        for delta in deltas:
-            try:
-                neighbours.append(0 if self.map[self.pos_x + delta[0]][self.pos_y + delta[1]] == 0 or 'E' or 'S' else 1)
-            except IndexError:
-                neighbours.append(1)
-
-        return neighbours
 
 # Creates agents with the given net and tests it on the given map
 def eval_genomes(genomes, config):
@@ -273,7 +261,7 @@ stats = neat.StatisticsReporter()
 p.add_reporter(stats)
 
 # Run until a solution is found.
-winner = p.run(eval_genomes, 100) # up to X generations
+winner = p.run(eval_genomes, 10) # up to X generations
 
 #visualize.draw_net(config, winner, True)
 #visualize.draw_net(config, winner, True, prune_unused=True)
