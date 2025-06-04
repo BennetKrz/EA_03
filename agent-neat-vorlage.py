@@ -200,7 +200,7 @@ class Agent:
         steps = 0
         while steps < MAX_STEPS and (self.pos_x != self.goal_x and self.pos_y != self.goal_y):
 
-            neighbours = self.get_neighbours()
+            neighbours = self._get_map_env()
             output = self.net.activate(neighbours)
             next_dirs = [(index, probability) for index, probability in enumerate(output)]
             next_dirs = sorted(next_dirs, key=operator.itemgetter(1), reverse=True)
@@ -211,7 +211,8 @@ class Agent:
 
             steps += 1
 
-        self.fitness = self.fitness_function()
+        self.fitness = self._get_distance()
+        #self.fitness = self.fitness_function()
         #self.fitness = self.fitness_min_steps(steps)
         return
 
