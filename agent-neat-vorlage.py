@@ -217,7 +217,7 @@ class Agent:
         return
 
     def fitness_function(self):
-        return -(abs(self.pos_x - self.goal_x) + abs(self.pos_y - self.goal_y))
+        return 1.0 / (1.0 + self._get_distance())
 
     def fitness_min_steps(self, steps):
         return self.fitness_function() - steps
