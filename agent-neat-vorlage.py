@@ -207,14 +207,17 @@ class Agent:
                 success_steps += 1
                 self.visited.add((self.pos_x, self.pos_y))
             steps += 1
+        #self.fitness = self.fitness_function()
+
 
         if (self.pos_x, self.pos_y) == (self.goal_x, self.goal_y):
             self.fitness = 1.0
         else:
             self.fitness = 1 / (max_steps - success_steps + self._get_distance())
 
+
     def fitness_function(self):
-        return 1.0 / (1.0 + self._get_distance())
+        return -(abs(self.pos_x - self.goal_x) + abs(self.pos_y - self.goal_y))
 
     def fitness_min_steps(self, steps):
         return self.fitness_function() - steps
@@ -230,8 +233,8 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         agent = Agent(net)
         agent.set_map(map)
-        agent.set_start(MAP_SIZE-1, MAP_SIZE-1)
-        agent.set_goal(0, 0)
+        agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
+        agent.set_start(0, 0)
         agent.run()
         genome.fitness = agent.fitness
 
@@ -270,4 +273,6 @@ agent = Agent(net)
 agent.set_map(config.map)
 agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
 agent.set_start(0,0)
+
+
 generator.draw_map(agent)
