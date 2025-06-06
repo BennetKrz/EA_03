@@ -95,7 +95,7 @@ class MapGenerator:
                     fill='orange')
 
         for i in range(0,MAP_SIZE*5):
-            inputs = agent._get_map_env()
+            inputs = agent.get_intput()
             output = agent.activate_net(inputs)
             if agent.move(output):
                 canvas.create_oval(
@@ -149,7 +149,7 @@ class Agent:
         """
         
         def valid_move(x, y):
-            return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (x,y) not in self.visited and (self.map[x][y] == 0 or self.map[x][y] == 'E')
+            return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (self.map[x][y] == 0 or self.map[x][y] == 'E')
 
         if direction == 0:
             delta = (-1, 0)
@@ -201,20 +201,20 @@ class Agent:
         steps = 0
         success_steps = 0
         while steps < max_steps and (self.pos_x, self.pos_y) != (self.goal_x, self.goal_y):
-            inputs = self._get_map_env()
+            inputs = self.get_intput()
             output = self.activate_net(inputs)
             if self.move(output):
                 success_steps += 1
                 self.visited.add((self.pos_x, self.pos_y))
             steps += 1
-        #self.fitness = self.fitness_function()
+        self.fitness = self.fitness_function()
 
-
+        """
         if (self.pos_x, self.pos_y) == (self.goal_x, self.goal_y):
             self.fitness = 1.0
         else:
             self.fitness = 1 / (max_steps - success_steps + self._get_distance())
-
+        """
 
     def fitness_function(self):
         return -(abs(self.pos_x - self.goal_x) + abs(self.pos_y - self.goal_y))
@@ -222,21 +222,145 @@ class Agent:
     def fitness_min_steps(self, steps):
         return self.fitness_function() - steps
 
+    def get_intput(self):
+        input = []
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x+abstand, self.pos_y):
+            abstand += 1
+        input.append(abstand-1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x + abstand, self.pos_y + abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x, self.pos_y + abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x-abstand, self.pos_y + abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x - abstand, self.pos_y):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x - abstand, self.pos_y -abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x, self.pos_y - abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+        abstand = 1
+        while self.is_valid_coordinate(self.pos_x+abstand, self.pos_y - abstand):
+            abstand += 1
+        input.append(abstand - 1)
+
+
+
+
+
+
+
+        abstand = 1
+        while (self.pos_x + abstand, self.pos_y) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x + abstand, self.pos_y):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x + abstand, self.pos_y + abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x + abstand, self.pos_y + abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x, self.pos_y + abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x, self.pos_y + abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x - abstand, self.pos_y + abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x - abstand, self.pos_y + abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x - abstand, self.pos_y) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x - abstand, self.pos_y):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x - abstand, self.pos_y - abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x - abstand, self.pos_y - abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x, self.pos_y - abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x, self.pos_y - abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        abstand = 1
+        while (self.pos_x + abstand, self.pos_y - abstand) not in self.visited:
+            if not self.is_valid_coordinate(self.pos_x + abstand, self.pos_y - abstand):
+                abstand = 0
+                break
+            abstand += 1
+        input.append(abstand)
+
+        input.append(self.pos_x - self.goal_x)
+        input.append(self.pos_y - self.goal_y)
+
+
+        return input
+    def is_valid_coordinate(self, x, y):
+        return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1
+
 # Creates agents with the given net and tests it on the given map
 def eval_genomes(genomes, config):
     """
         Testet jedes Genom mit einem Agenten.
     """
     
-    map = config.map
+            #map = config.map
     for genome_id, genome in genomes:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        agent = Agent(net)
-        agent.set_map(map)
-        agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
-        agent.set_start(0, 0)
-        agent.run()
-        genome.fitness = agent.fitness
+        genome.fitness = 0
+    for map in config.maps:
+        for genome_id, genome in genomes:
+            net = neat.nn.FeedForwardNetwork.create(genome, config)
+            agent = Agent(net)
+            agent.set_map(map)
+            agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
+            agent.set_start(0, 0)
+            agent.run()
+            genome.fitness += agent.fitness
 
     return
 
@@ -248,7 +372,13 @@ generator.generate()
 config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                      neat.DefaultSpeciesSet, neat.DefaultStagnation,
                      'neat-config')
-config.map = generator.map
+
+
+##config.map = generator.map
+config.maps = []
+for i in range(10):
+    generator.generate()
+    config.maps.append(generator.map)
 
 # Erzeugen einer Population
 p = neat.Population(config)
@@ -261,7 +391,7 @@ stats = neat.StatisticsReporter()
 p.add_reporter(stats)
 
 # Run until a solution is found.
-winner = p.run(eval_genomes, 100)  # up to X generations
+winner = p.run(eval_genomes, 40)  # up to X generations
 
 #visualize.draw_net(config, winner, True)
 #visualize.draw_net(config, winner, True, prune_unused=True)
@@ -269,10 +399,34 @@ winner = p.run(eval_genomes, 100)  # up to X generations
 #visualize.plot_species(stats, view=True)
 
 net = neat.nn.FeedForwardNetwork.create(winner, config)
-agent = Agent(net)
-agent.set_map(config.map)
-agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
-agent.set_start(0,0)
 
 
-generator.draw_map(agent)
+
+
+for map in config.maps:
+    _agent = Agent(net)
+    _agent.set_map(map)
+    _agent.set_goal(MAP_SIZE - 1, MAP_SIZE - 1)
+    _agent.set_start(0, 0)
+
+    _generator = MapGenerator(MAP_SIZE, (0, 0), (MAP_SIZE - 1, MAP_SIZE - 1))
+    _generator.map = map
+    _generator.draw_map(_agent)
+
+while True:
+    eingabe = input("Gib 'next' ein, um fortzufahren (oder 'exit' zum Beenden): ")
+    if eingabe == "next":
+        _generator = MapGenerator(MAP_SIZE, (0, 0), (MAP_SIZE - 1, MAP_SIZE - 1))
+        _generator.generate()
+
+        _agent = Agent(net)
+        _agent.set_map(_generator.map)
+        _agent.set_goal(MAP_SIZE - 1, MAP_SIZE - 1)
+        _agent.set_start(0, 0)
+
+        _generator.draw_map(_agent)
+    elif eingabe == "exit":
+        print("Beende Programm.")
+        break
+    else:
+        print("Ungültige Eingabe. Bitte 'next' oder 'exit' eingeben.")
