@@ -3,6 +3,10 @@ import random
 from tkinter import Tk, Canvas
 import neat
 import math
+import os
+os.environ['TCL_LIBRARY'] = r'C:\Users\bjarn\AppData\Local\Programs\Python\Python313\tcl\tcl8.6'
+
+import tkinter as tk
 import visualize
 
 # Kantenlänge des Labyrinths
@@ -149,7 +153,15 @@ class Agent:
         """
         
         def valid_move(x, y):
-            return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (x,y) not in self.visited and self.map[x][y] == 0
+            if x < 0 or x >= len(self.map) or y < 0 or y >= len(self.map[0]):
+                return False
+            if (x, y) in self.visited:
+                return False
+            if self.map[x][y] == 1:
+                return False
+            if self.map[x][y] == 0 or self.map[x][y] == 'S' or self.map[x][y] == 'E':
+                return True
+            return False
 
         if direction == 0:
             delta = (-1, 0)
@@ -198,7 +210,7 @@ class Agent:
         """
 
         steps = 0
-        while steps < MAX_STEPS and (self.pos_x != self.goal_x and self.pos_y != self.goal_y):
+        while steps < MAX_STEPS and not (self.pos_x == self.goal_x and self.pos_y == self.goal_y):
 
             neighbours = self._get_map_env()
             output = self.net.activate(neighbours)
@@ -211,8 +223,8 @@ class Agent:
 
             steps += 1
 
-        self.fitness = self._get_distance()
-        #self.fitness = self.fitness_function()
+        #self.fitness = self._get_distance()
+        self.fitness = self.fitness_function()
         #self.fitness = self.fitness_min_steps(steps)
         return
 
@@ -245,8 +257,8 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         agent = Agent(net)
         agent.set_map(map)
-        agent.set_start(MAP_SIZE-1, MAP_SIZE-1)
-        agent.set_goal(0, 0)
+        agent.set_start(0,0)
+        agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
         agent.run()
         genome.fitness = agent.fitness
 
@@ -273,7 +285,7 @@ stats = neat.StatisticsReporter()
 p.add_reporter(stats)
 
 # Run until a solution is found.
-winner = p.run(eval_genomes, 100) # up to X generations
+winner = p.run(eval_genomes, 10) # up to X generations
 
 #visualize.draw_net(config, winner, True)
 #visualize.draw_net(config, winner, True, prune_unused=True)
@@ -285,4 +297,5 @@ agent = Agent(net)
 agent.set_map(config.map)
 agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
 agent.set_start(0,0)
+#agent.visited = {(0, 0)}  # Startposition als besucht markieren
 generator.draw_map(agent)
