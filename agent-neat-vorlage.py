@@ -169,7 +169,6 @@ class Agent:
         return False
 
     def _get_distance(self):
-        # Euklidische Distanz von Ziel zu aktueller Position
         return math.sqrt((self.goal_x - self.pos_x)**2 + (self.goal_y - self.pos_y)**2)
 
     def _get_map_env(self):
@@ -190,6 +189,7 @@ class Agent:
         env.append(get_value(self.pos_x, self.pos_y - 1)) # bottom middle
         env.append(get_value(self.pos_x + 1, self.pos_y - 1)) # bottom right
         return env
+
 
     def run(self):
         """
@@ -275,6 +275,4 @@ agent = Agent(net)
 agent.set_map(config.map)
 agent.set_goal(MAP_SIZE-1, MAP_SIZE-1)
 agent.set_start(0,0)
-
-
 generator.draw_map(agent)
