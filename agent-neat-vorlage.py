@@ -149,7 +149,7 @@ class Agent:
         """
         
         def valid_move(x, y):
-            return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (x,y) not in self.visited and self.map[x][y] == 0
+            return x >= 0 and x < len(self.map) and y >= 0 and y < len(self.map[0]) and self.map[x][y] != 1 and (x,y) not in self.visited and (self.map[x][y] == 0 or self.map[x][y] == 'E')
 
         if direction == 0:
             delta = (-1, 0)
@@ -169,6 +169,7 @@ class Agent:
         return False
 
     def _get_distance(self):
+        # Euklidische Distanz von Ziel zu aktueller Position
         return math.sqrt((self.goal_x - self.pos_x)**2 + (self.goal_y - self.pos_y)**2)
 
     def _get_map_env(self):
@@ -190,31 +191,27 @@ class Agent:
         env.append(get_value(self.pos_x + 1, self.pos_y - 1)) # bottom right
         return env
 
-
     def run(self):
         """
             Führt eine Maximalanzahl von Schritten für den Agenten aus.
             Die Richtung wird vom "Gehirn", dem neuronalen Netz festgelegt.
         """
 
+        max_steps = MAP_SIZE * 5
         steps = 0
-        while steps < MAX_STEPS and (self.pos_x != self.goal_x and self.pos_y != self.goal_y):
-
-            neighbours = self._get_map_env()
-            output = self.net.activate(neighbours)
-            next_dirs = [(index, probability) for index, probability in enumerate(output)]
-            next_dirs = sorted(next_dirs, key=operator.itemgetter(1), reverse=True)
-
-            for next_dir in next_dirs:
-                if self.move(next_dir[0]):
-                    break
-
+        success_steps = 0
+        while steps < max_steps and (self.pos_x, self.pos_y) != (self.goal_x, self.goal_y):
+            inputs = self._get_map_env()
+            output = self.activate_net(inputs)
+            if self.move(output):
+                success_steps += 1
+                self.visited.add((self.pos_x, self.pos_y))
             steps += 1
 
-        #self.fitness = self._get_distance()
-        self.fitness = self.fitness_function()
-        #self.fitness = self.fitness_min_steps(steps)
-        return
+        if (self.pos_x, self.pos_y) == (self.goal_x, self.goal_y):
+            self.fitness = 1.0
+        else:
+            self.fitness = 1 / (max_steps - success_steps + self._get_distance())
 
     def fitness_function(self):
         return 1.0 / (1.0 + self._get_distance())
@@ -261,7 +258,7 @@ stats = neat.StatisticsReporter()
 p.add_reporter(stats)
 
 # Run until a solution is found.
-winner = p.run(eval_genomes, 10) # up to X generations
+winner = p.run(eval_genomes, 100)  # up to X generations
 
 #visualize.draw_net(config, winner, True)
 #visualize.draw_net(config, winner, True, prune_unused=True)
